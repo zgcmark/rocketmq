@@ -227,17 +227,33 @@ public class MQClientInstance {
                 case CREATE_JUST:
                     this.serviceState = ServiceState.START_FAILED;
                     // If not specified,looking address from name server
+                    //这个地方是跟nacos非常像的呀，就是跟nacos 的server和 client一样，client如果没有指定访问的client,会去远程拉取最新的nameserver地址
                     if (null == this.clientConfig.getNamesrvAddr()) {
+                        //这个地方是http请求
                         this.mQClientAPIImpl.fetchNameServerAddr();
                     }
                     // Start request-response channel
+
+                    //这个地方就是启动netty的客户端
                     this.mQClientAPIImpl.start();
+
                     // Start various schedule tasks
+
+                    //创建一个定时轮训的线程池
                     this.startScheduledTask();
+
+                    //实际上是启动了一个线程 ,run的时候会不停的  LinkedBlockingQueue的take,这个线程相对于会不停的循环拉取，如果拉到消息，直接找到一个consmer 去pullMessage
+                    //PS：这个地方跟我想象的不太一样，我认为 是不是说这个地方批量的话会更好，就是每过一段时间，批量的把请求  发送给broker  --（参考kafka）
                     // Start pull service
                     this.pullMessageService.start();
+
                     // Start rebalance service
+                    //???d 再平衡？？？ 没有看懂，貌似是consume负载均衡
                     this.rebalanceService.start();
+
+
+                    //这个地方要是不写注释的话，真的是不好理解，为什么push模式的时候，就要通过 impl的start实现呢？不能单独抽出一个方法吗？
+                    //给所有的broker发送心跳包
                     // Start push service
                     this.defaultMQProducer.getDefaultMQProducerImpl().start(false);
                     log.info("the client factory [{}] start OK", this.clientId);
@@ -257,6 +273,7 @@ public class MQClientInstance {
 
     private void startScheduledTask() {
         if (null == this.clientConfig.getNamesrvAddr()) {
+            //参数说明 初始化延时时间，2分钟执行一次
             this.scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
 
                 @Override
@@ -450,6 +467,7 @@ public class MQClientInstance {
     public void sendHeartbeatToAllBrokerWithLock() {
         if (this.lockHeartbeat.tryLock()) {
             try {
+                //给所有的broker发送心跳包
                 this.sendHeartbeatToAllBroker();
                 this.uploadFilterClassSource();
             } catch (final Exception e) {
@@ -915,6 +933,7 @@ public class MQClientInstance {
             return false;
         }
 
+        //这个组的管理，在spring的管理下，其实也没有什么意思，也是只会有一条记录
         MQProducerInner prev = this.producerTable.putIfAbsent(group, producer);
         if (prev != null) {
             log.warn("the producer group[{}] exist already.", group);

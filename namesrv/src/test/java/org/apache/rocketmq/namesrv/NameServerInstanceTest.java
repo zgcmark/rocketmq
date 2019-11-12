@@ -44,4 +44,17 @@ public class NameServerInstanceTest {
         }
         //maybe need to clean the file store. But we do not suggest deleting anything.
     }
+
+    public static void main(String[] args) throws Exception {
+        //初始化配置对象
+         NamesrvConfig namesrvConfig = new NamesrvConfig();
+         //初始化远程连接对象
+         NettyServerConfig nettyServerConfig = new NettyServerConfig();
+         nettyServerConfig.setListenPort(9876);
+         //相当与springApplicationContext一样的上下文承载的主体
+         NamesrvController namesrvController = new NamesrvController(namesrvConfig, nettyServerConfig);
+         namesrvController.initialize();
+         namesrvController.start();
+         Thread.sleep(10000000000000000L);
+    }
 }

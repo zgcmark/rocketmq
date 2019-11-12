@@ -200,6 +200,7 @@ public class MQClientAPIImpl {
 
     public String fetchNameServerAddr() {
         try {
+            //其实也没有人会改这个东西，如果没有的话那就是真的没有了
             String addrs = this.topAddressing.fetchNSAddr();
             if (addrs != null) {
                 if (!addrs.equals(this.nameSrvAddr)) {

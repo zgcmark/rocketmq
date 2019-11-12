@@ -45,9 +45,12 @@ public class MQClientManager {
     }
 
     public MQClientInstance getAndCreateMQClientInstance(final ClientConfig clientConfig, RPCHook rpcHook) {
+        //这里的clientId是ip+instance
         String clientId = clientConfig.buildMQClientId();
+        //这个地方的map维护的是实例的map，TODO 这个地方为什么需要维护多个实例的映射关系？  目前看来时没有用的，因为spring管理后，这个地方会只有一个producce
         MQClientInstance instance = this.factoryTable.get(clientId);
         if (null == instance) {
+            //新建一个实例对象
             instance =
                 new MQClientInstance(clientConfig.cloneClientConfig(),
                     this.factoryIndexGenerator.getAndIncrement(), clientId, rpcHook);
